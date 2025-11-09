@@ -37,23 +37,22 @@ ${GREEN}AhorroLand Deployment Script${NC}
 Uso: $0 [ENVIRONMENT] [OPTIONS]
 
 Entornos:
-  dev         Despliega en modo desarrollo
-  prod        Despliega en modo producción
+  dev         Despliega en modo desarrollo (solo BD y phpMyAdmin)
+  prod        Despliega en modo producción (completo)
 
 Opciones:
   --api-version VERSION       Versión específica del API (por defecto: latest)
   --frontend-version VERSION  Versión específica del frontend (por defecto: latest)
   --pull                      Fuerza el pull de las imágenes
-  --rebuild                   Reconstruye las imágenes localmente (solo dev)
   --clean                     Limpia containers y volúmenes antes de desplegar
   --logs                      Muestra los logs después del despliegue
   -h, --help                  Muestra esta ayuda
 
 Ejemplos:
-  $0 dev                                    # Desarrollo con latest
+  $0 dev                                    # Desarrollo (solo BD)
   $0 prod --api-version 1.2.3              # Producción con versión específica del API
   $0 prod --api-version 1.2.3 --frontend-version 1.2.0
-  $0 dev --rebuild                         # Desarrollo reconstruyendo imágenes
+  $0 dev --clean                           # Desarrollo limpiando datos antiguos
   $0 prod --clean --logs                   # Producción limpiando y mostrando logs
 
 EOF
@@ -64,7 +63,6 @@ ENVIRONMENT=""
 API_VERSION="latest"
 FRONTEND_VERSION="latest"
 PULL_IMAGES=false
-REBUILD=false
 CLEAN=false
 SHOW_LOGS=false
 
@@ -85,10 +83,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         --pull)
             PULL_IMAGES=true
-            shift
-            ;;
-        --rebuild)
-            REBUILD=true
             shift
             ;;
         --clean)
@@ -120,7 +114,7 @@ fi
 
 # Configuración según el entorno
 if [ "$ENVIRONMENT" == "dev" ]; then
-    COMPOSE_FILES="-f docker-compose.yml -f docker-compose.dev.yml"
+    COMPOSE_FILES="-f docker-compose.yml"
     print_info "Desplegando en modo DESARROLLO (solo infraestructura)"
     print_warning "Backend y Frontend deben ejecutarse localmente:"
     print_warning "  Backend:  cd ../GastosApp/AhorroLand-Backend/AhorroLand/AhorroLand.NuevaApi && dotnet run"
@@ -143,8 +137,8 @@ if [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
-if [ ! -f "docker-compose.$ENVIRONMENT.yml" ]; then
-    print_error "No se encontró docker-compose.$ENVIRONMENT.yml"
+if [ "$ENVIRONMENT" == "prod" ] && [ ! -f "docker-compose.prod.yml" ]; then
+    print_error "No se encontró docker-compose.prod.yml"
     exit 1
 fi
 
@@ -158,13 +152,6 @@ if [ "$CLEAN" = true ]; then
     print_info "Limpiando contenedores y volúmenes..."
     docker-compose $COMPOSE_FILES down -v
     print_success "Limpieza completada"
-fi
-
-# Reconstruir imágenes si se solicitó (solo en dev)
-if [ "$REBUILD" = true ] && [ "$ENVIRONMENT" == "dev" ]; then
-    print_info "Reconstruyendo imágenes..."
-    docker-compose $COMPOSE_FILES build --no-cache
-    print_success "Imágenes reconstruidas"
 fi
 
 # Pull de imágenes si se solicitó o si es producción
