@@ -1,0 +1,50 @@
+services:
+  # Los servicios 'api' y 'frontend' se definirán
+  # en los archivos dev.yml y prod.yml
+
+  #--- Base de Datos MySQL ---
+  db:
+    container_name: mi-db
+    image: mysql:8.0-oracle  # Oracle Linux (más ligera que Debian)
+    restart: always
+    ports:
+      - "3306:3306"  # Expuesto para desarrollo local
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - ahorroland-red
+    environment:
+      # (Variables para dev o prod se pueden poner en .env)
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  #--- phpMyAdmin ---
+  db-admin:
+    container_name: mi-db-admin
+    image: phpmyadmin:5.2-apache  # Versión específica más ligera
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_ARBITRARY=0
+      - UPLOAD_LIMIT=50M
+    networks:
+      - ahorroland-red
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+
+networks:
+  ahorroland-red:
+    driver: bridge

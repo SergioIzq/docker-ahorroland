@@ -1,0 +1,23 @@
+# Variables de entorno con datos sensibles
+.env
+
+# Archivos de configuración local
+.env.local
+*.local
+
+# Logs
+*.log
+logs/
+
+# Datos de volúmenes (si se usan fuera de Docker)
+data/
+mysql-data/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Backups
+backups/
+*.backup
+*.sql.gz

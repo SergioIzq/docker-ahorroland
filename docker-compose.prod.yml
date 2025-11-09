@@ -1,0 +1,22 @@
+services:
+  api:
+    container_name: ahorroland-backend
+    image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest} 
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - ahorroland-red
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+
+  frontend:
+    container_name: ahorroland-frontend
+    image: sergioizqdev/ahorroland-frontend:${FRONTEND_VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - ahorroland-red

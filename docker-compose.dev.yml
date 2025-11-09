@@ -1,0 +1,14 @@
+# Docker Compose para Desarrollo
+# Solo contiene servicios de infraestructura (BD)
+# Backend y Frontend se ejecutan directamente en tu máquina
+
+# Para desarrollo:
+# 1. Inicia la BD: docker-compose up -d
+# 2. Backend: cd ../GastosApp/AhorroLand-Backend/AhorroLand/AhorroLand.NuevaApi && dotnet run
+# 3. Frontend: cd ../GastosApp/GastosApp-Frontend && npm start
+
+# No se definen servicios adicionales, solo se heredan db y db-admin de docker-compose.yml
+# Puedes acceder a:
+# - Base de datos: localhost:3306
+# - phpMyAdmin: http://localhost:8081
+
