@@ -8,7 +8,7 @@ services:
     image: mysql:8.0-oracle  # Oracle Linux (más ligera que Debian)
     restart: always
     ports:
-      - "3306:3306"  # Expuesto para desarrollo local
+      - "3307:3306"  # Expuesto para desarrollo local
     volumes:
       - db-data:/var/lib/mysql
     networks:
