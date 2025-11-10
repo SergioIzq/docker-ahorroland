@@ -4,7 +4,7 @@ services:
     image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest} 
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "5001:80"  # Cambiado de 80 a 5001 (puerto libre)
     networks:
       - ahorroland-red
     depends_on:
@@ -17,6 +17,6 @@ services:
     image: sergioizqdev/ahorroland-frontend:${FRONTEND_VERSION:-latest}
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "3001:80"  # Cambiado de 8080 a 3001 (puerto libre)
     networks:
       - ahorroland-red

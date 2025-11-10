@@ -193,16 +193,16 @@ print_success "═════════════════════�
 echo ""
 
 if [ "$ENVIRONMENT" == "dev" ]; then
-    print_info "🔗 Base de datos:  localhost:3306"
-    print_info "🔗 phpMyAdmin:     http://localhost:8081"
+    print_info "🔗 Base de datos:  localhost:3307"
+    print_info "🔗 phpMyAdmin:     http://localhost:8082"
     print_info ""
     print_info "Para iniciar tu aplicación:"
-    print_info "  � Backend:  cd ../GastosApp/AhorroLand-Backend/AhorroLand/AhorroLand.NuevaApi && dotnet run"
+    print_info "  🚀 Backend:  cd ../GastosApp/AhorroLand-Backend/AhorroLand/AhorroLand.NuevaApi && dotnet run"
     print_info "  🎨 Frontend: cd ../GastosApp/GastosApp-Frontend && npm start"
 elif [ "$ENVIRONMENT" == "prod" ]; then
-    print_info "🔗 API:          http://localhost"
-    print_info "🔗 Frontend:     http://localhost:8080"
-    print_info "🔗 phpMyAdmin:   http://localhost:8081"
+    print_info "🔗 API:          http://localhost:5001"
+    print_info "🔗 Frontend:     http://localhost:3001"
+    print_info "🔗 phpMyAdmin:   http://localhost:8082"
 fi
 
 echo ""

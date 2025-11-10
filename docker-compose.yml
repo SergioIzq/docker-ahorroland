@@ -31,7 +31,7 @@ services:
     image: phpmyadmin:5.2-apache  # Versión específica más ligera
     restart: always
     ports:
-      - "8081:80"
+      - "8082:80"  # Cambiado de 8081 a 8082 (puerto libre)
     environment:
       - PMA_HOST=db
       - PMA_PORT=3306
