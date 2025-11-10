@@ -4,7 +4,7 @@ services:
     image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest} 
     restart: unless-stopped
     ports:
-      - "5001:5000"  # Mapear al puerto 5000 que usa la app
+      - "5001:80"  # Cambiado de 80 a 5001 (puerto libre)
     networks:
       - ahorroland-red
     depends_on:
@@ -12,6 +12,7 @@ services:
     environment:
       # Aplicación
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=http://+:80
       
       # Base de Datos
       - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Database=${DB_DATABASE};Uid=${DB_USER};Pwd=${DB_PASSWORD};AllowUserVariables=true;SslMode=Preferred;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=180;ConnectionReset=true;ConnectionTimeout=30
