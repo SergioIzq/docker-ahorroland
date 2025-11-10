@@ -12,6 +12,7 @@ services:
     environment:
       # Aplicación
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=http://+:80
       
       # Base de Datos
       - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Database=${DB_DATABASE};Uid=${DB_USER};Pwd=${DB_PASSWORD};AllowUserVariables=true;SslMode=Preferred;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=180;ConnectionReset=true;ConnectionTimeout=30
