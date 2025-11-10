@@ -8,7 +8,8 @@ services:
     networks:
       - ahorroland-red
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       # Aplicación
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
