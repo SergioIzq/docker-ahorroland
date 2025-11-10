@@ -10,7 +10,18 @@ services:
     depends_on:
       - db
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      # Aplicación
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      
+      # Base de Datos
+      - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Database=${DB_DATABASE};Uid=${DB_USER};Pwd=${DB_PASSWORD};AllowUserVariables=true;SslMode=Preferred;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=180;ConnectionReset=true;ConnectionTimeout=30
+      
+      # Email
+      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER}
+      - EmailSettings__SmtpUser=${EMAIL_SMTP_USER}
+      - EmailSettings__SmtpPass=${EMAIL_SMTP_PASS}
+      - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT}
+      - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL}
 
   frontend:
     container_name: ahorroland-frontend
