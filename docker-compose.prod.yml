@@ -1,35 +1,88 @@
 services:
-  api:
-    container_name: ahorroland-backend
-    image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest} 
-    restart: unless-stopped
+  ahorroland-api:
+    image: sergioizqdev/ahorroland-backend:latest
+    container_name: ahorroland-api
     ports:
-      - "5001:80"  # Cambiado de 80 a 5001 (puerto libre)
-    networks:
-      - ahorroland-red
-    depends_on:
-      db:
-        condition: service_healthy
+      - "8080:80"
+      - "8443:443"
     environment:
-      # Aplicación
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      
-      # Base de Datos
-      - ConnectionStrings__DefaultConnection=Server=${DB_SERVER};Port=${DB_PORT};Database=${DB_DATABASE};Uid=${DB_USER};Pwd=${DB_PASSWORD};AllowUserVariables=true;SslMode=Preferred;Pooling=true;MinPoolSize=0;MaxPoolSize=100;ConnectionLifetime=180;ConnectionReset=true;ConnectionTimeout=30
-      
-      # Email
-      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER}
+      # Configuración de conexión a base de datos
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      # Configuración JWT
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY}
+      - JwtSettings__Issuer=${JWT_ISSUER:-AhorroLand}
+      - JwtSettings__Audience=${JWT_AUDIENCE:-AhorroLand}
+      - JwtSettings__ExpirationMinutes=${JWT_EXPIRATION:-720}
+      # Configuración Email
+      - EmailSettings__SmtpServer=${SMTP_SERVER}
+      - EmailSettings__SmtpPort=${SMTP_PORT}
+      - EmailSettings__SmtpUser=${SMTP_USER}
+      - EmailSettings__SmtpPass=${SMTP_PASS}
+      - EmailSettings__FromEmail=${FROM_EMAIL}
+      - EmailSettings__FromName=${FROM_NAME:-AhorroLand}
+      # Redis (opcional)
+      - ConnectionStrings__Redis=${REDIS_CONNECTION}
+      # Configuración Brevo (Sendinblue)
+      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER:-smtp-relay.brevo.com}
+      - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT:-587}
       - EmailSettings__SmtpUser=${EMAIL_SMTP_USER}
       - EmailSettings__SmtpPass=${EMAIL_SMTP_PASS}
-      - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT}
-      - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL}
+      - EmailSettings__FromEmail=${EMAIL_FROM_EMAIL}
+      - EmailSettings__FromName=${EMAIL_FROM_NAME:-AhorroLand}
+      - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL:-true}
+      # Configuración Serilog
+      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
+      - Serilog__WriteTo__0__Name=Console
+      - Serilog__WriteTo__1__Name=File
+      - Serilog__WriteTo__1__Args__path=/app/logs/ahorroland-.log
+      - Serilog__WriteTo__1__Args__rollingInterval=Day
+      - Serilog__WriteTo__1__Args__retainedFileCountLimit=7
+      - Serilog__WriteTo__1__Args__fileSizeLimitBytes=10485760
+      - Serilog__WriteTo__1__Args__rollOnFileSizeLimit=true
+    volumes:
+      # 🔥 VOLUMEN DE LOGS: Mapear logs del contenedor al host
+      - ./logs/backend:/app/logs
+      # Vínculo a los sockets de dominio para la integración de Brevo
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ahorroland-red
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
 
   frontend:
     container_name: ahorroland-frontend
     image: sergioizqdev/ahorroland-frontend:${FRONTEND_VERSION:-latest}
     restart: unless-stopped
     ports:
-      - "3001:80"  # Cambiado de 8080 a 3001 (puerto libre)
+      - "3001:80"  # Puerto HTTP
     networks:
       - ahorroland-red
+
+  # 🔥 SERVICIO OPCIONAL: Logrotate para gestión automática de logs
+  logrotate:
+    image: blacklabelops/logrotate:latest
+    container_name: ahorroland-logrotate
+    restart: unless-stopped
+    environment:
+      # Rotar logs diarios, mantener 7 días
+      - "LOGS_DIRECTORIES=/logs"
+      - "LOGROTATE_INTERVAL=daily"
+      - "LOGROTATE_COPIES=7"
+      - "LOGROTATE_SIZE=10M"
+      - "LOGROTATE_COMPRESSION=compress"
+      - "LOGROTATE_OLDDIR=/logs/archive"
+    volumes:
+      - ./logs:/logs
+    networks:
+      - ahorroland-network
+
+networks:
+  ahorroland-network:
+    driver: bridge
