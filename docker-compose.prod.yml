@@ -8,23 +8,19 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      # Configuración de conexión a base de datos
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      # Configuración JWT
+      # ... (Resto de variables JWT y Email igual) ...
       - JwtSettings__SecretKey=${JWT_SECRET_KEY}
       - JwtSettings__Issuer=${JWT_ISSUER:-AhorroLand}
       - JwtSettings__Audience=${JWT_AUDIENCE:-AhorroLand}
       - JwtSettings__ExpirationMinutes=${JWT_EXPIRATION:-720}
-      # Configuración Email
       - EmailSettings__SmtpServer=${SMTP_SERVER}
       - EmailSettings__SmtpPort=${SMTP_PORT}
       - EmailSettings__SmtpUser=${SMTP_USER}
       - EmailSettings__SmtpPass=${SMTP_PASS}
       - EmailSettings__FromEmail=${FROM_EMAIL}
       - EmailSettings__FromName=${FROM_NAME:-AhorroLand}
-      # Redis (opcional)
       - ConnectionStrings__Redis=${REDIS_CONNECTION}
-      # Configuración Brevo (Sendinblue)
       - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER:-smtp-relay.brevo.com}
       - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT:-587}
       - EmailSettings__SmtpUser=${EMAIL_SMTP_USER}
@@ -32,7 +28,6 @@ services:
       - EmailSettings__FromEmail=${EMAIL_FROM_EMAIL}
       - EmailSettings__FromName=${EMAIL_FROM_NAME:-AhorroLand}
       - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL:-true}
-      # Configuración Serilog
       - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
       - Serilog__WriteTo__0__Name=Console
       - Serilog__WriteTo__1__Name=File
@@ -42,12 +37,17 @@ services:
       - Serilog__WriteTo__1__Args__fileSizeLimitBytes=10485760
       - Serilog__WriteTo__1__Args__rollOnFileSizeLimit=true
     volumes:
-      # 🔥 VOLUMEN DE LOGS: Mapear logs del contenedor al host
+      # Logs
       - ./logs/backend:/app/logs
-      # Vínculo a los sockets de dominio para la integración de Brevo
+      
+      # 📷 NUEVO: Persistencia de Avatares
+      # Mapeamos la ruta real de tu VPS a la carpeta virtual de .NET
+      - /var/www/ahorroland/storage/avatars:/app/wwwroot/avatars
+
+      # Docker Sock para integración con herramientas
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - ahorroland-red
+      - ahorroland-red # ✅ Conecta a la red del archivo base
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost/health"]
@@ -61,17 +61,15 @@ services:
     image: sergioizqdev/ahorroland-frontend:${FRONTEND_VERSION:-latest}
     restart: unless-stopped
     ports:
-      - "3001:80"  # Puerto HTTP
+      - "3001:80"
     networks:
-      - ahorroland-red
+      - ahorroland-red # ✅ Conecta a la red del archivo base
 
-  # 🔥 SERVICIO OPCIONAL: Logrotate para gestión automática de logs
   logrotate:
     image: blacklabelops/logrotate:latest
     container_name: ahorroland-logrotate
     restart: unless-stopped
     environment:
-      # Rotar logs diarios, mantener 7 días
       - "LOGS_DIRECTORIES=/logs"
       - "LOGROTATE_INTERVAL=daily"
       - "LOGROTATE_COPIES=7"
@@ -81,8 +79,4 @@ services:
     volumes:
       - ./logs:/logs
     networks:
-      - ahorroland-network
-
-networks:
-  ahorroland-network:
-    driver: bridge
+      - ahorroland-red
