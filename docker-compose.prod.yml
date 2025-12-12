@@ -46,7 +46,8 @@ services:
     networks:
       - ahorroland-red
     depends_on:
-      - db
+          db:
+            condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost/health"]
