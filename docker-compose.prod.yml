@@ -1,7 +1,7 @@
 services:
-  ahorroland-api:
-    image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest}
-    container_name: ahorroland-api
+  kash-api:
+    image: sergioizqdev/kash-backend:${API_VERSION:-latest}
+    container_name: kash-api
     ports:
       - "8080:80"
       - "8443:443" # Descomentar si usas HTTPS dentro del contenedor, usualmente el proxy inverso (Nginx/Traefik) maneja SSL
@@ -32,7 +32,7 @@ services:
       - Serilog__MinimumLevel__Default=Information
       # Configuración para tu sistema HtmlFileLog
       - HtmlFileLog__LogDirectory=/app/logs
-      - HtmlFileLog__FileNamePrefix=ahorroland-prod
+      - HtmlFileLog__FileNamePrefix=kash-prod
       - HtmlFileLog__RetainedFileCountLimit=7
       - HtmlFileLog__CleanOnStartup=false
       
@@ -41,7 +41,7 @@ services:
       - ./logs/backend:/app/logs
       
       # Persistencia de Avatares / Archivos estáticos
-      - /var/www/ahorroland/storage/avatars:/app/wwwroot/avatars
+      - /var/www/kash/storage/avatars:/app/wwwroot/avatars
 
     networks:
       - ahorroland-red
@@ -57,17 +57,17 @@ services:
       start_period: 10s
 
   frontend:
-    container_name: ahorroland-frontend
-    image: sergioizqdev/ahorroland-frontend:${FRONTEND_VERSION:-latest}
+    container_name: kash-frontend
+    image: sergioizqdev/kash-frontend:${FRONTEND_VERSION:-latest}
     restart: unless-stopped
     ports:
       - "3001:80"
     networks:
-      - ahorroland-red
+      - kash-red
 
   logrotate:
     image: blacklabelops/logrotate:latest
-    container_name: ahorroland-logrotate
+    container_name: kash-logrotate
     restart: unless-stopped
     environment:
       - "LOGS_DIRECTORIES=/logs"
@@ -78,4 +78,4 @@ services:
     volumes:
       - ./logs:/logs
     networks:
-      - ahorroland-red
+      - kash-red
