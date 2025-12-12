@@ -8,7 +8,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      
+      - BASE_URL=${FRONTEND_URL}
       # --- Base de Datos ---
       # Nota: En Docker usamos el nombre del servicio 'db' y el puerto interno 3306
       - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=${DB_DATABASE};Uid=${DB_USER};Password=${DB_PASSWORD};GuidFormat=Binary16;Allow User Variables=true;
@@ -63,7 +63,7 @@ services:
     ports:
       - "3001:80"
     networks:
-      - kash-red
+      - ahorroland-red
 
   logrotate:
     image: blacklabelops/logrotate:latest
@@ -78,4 +78,4 @@ services:
     volumes:
       - ./logs:/logs
     networks:
-      - kash-red
+      - ahorroland-red
