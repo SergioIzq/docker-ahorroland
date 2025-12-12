@@ -4,7 +4,7 @@ services:
     container_name: ahorroland-api
     ports:
       - "8080:80"
-      # - "8443:443" # Descomentar si usas HTTPS dentro del contenedor, usualmente el proxy inverso (Nginx/Traefik) maneja SSL
+      - "8443:443" # Descomentar si usas HTTPS dentro del contenedor, usualmente el proxy inverso (Nginx/Traefik) maneja SSL
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
