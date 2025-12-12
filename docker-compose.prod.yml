@@ -11,7 +11,7 @@ services:
       
       # --- Base de Datos ---
       # Nota: En Docker usamos el nombre del servicio 'db' y el puerto interno 3306
-      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=${DB_DATABASE};Uid=${DB_USER};Password=${DB_PASSWORD};GuidFormat=Binary16;
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=${DB_DATABASE};Uid=${DB_USER};Password=${DB_PASSWORD};GuidFormat=Binary16;Allow User Variables=true;
 
       # --- JWT Security ---
       - JwtSettings__SecretKey=${JWT_SECRET_KEY}
