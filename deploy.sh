@@ -2,6 +2,7 @@
 
 # Script de Despliegue para AhorroLand (.NET 10 + Angular 21)
 # Uso: ./deploy.sh [dev|prod] [options]
+# ACTUALIZADO: Usa 'docker compose' (v2) en lugar de 'docker-compose' (v1)
 
 set -e
 
@@ -12,7 +13,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Directorios de proyectos (Ajustar según tu estructura real)
+# Directorios de proyectos (informativo para dev)
 BACKEND_PATH="../GastosApp/AhorroLand-Backend/AhorroLand/AhorroLand.Api"
 FRONTEND_PATH="../GastosApp/GastosApp-Frontend"
 
@@ -72,9 +73,6 @@ fi
 if [ "$ENVIRONMENT" == "dev" ]; then
     COMPOSE_FILES="-f docker-compose.yml"
     print_info "Desplegando infraestructura de DESARROLLO"
-    print_warning "⚠️  Recuerda ejecutar las apps localmente:"
-    print_warning "  Backend (.NET 10):  cd $BACKEND_PATH && dotnet run"
-    print_warning "  Frontend (Ang 21):  cd $FRONTEND_PATH && npm start"
 elif [ "$ENVIRONMENT" == "prod" ]; then
     COMPOSE_FILES="-f docker-compose.yml -f docker-compose.prod.yml"
     print_info "Desplegando PRODUCCIÓN (Full Stack Docker)"
@@ -93,27 +91,31 @@ if [ ! -f ".env" ]; then print_warning "No se encontró archivo .env, usando val
 # Limpieza
 if [ "$CLEAN" = true ]; then
     print_info "Limpiando contenedores..."
-    docker-compose $COMPOSE_FILES down -v
+    # FIX: Usamos docker compose (v2)
+    docker compose $COMPOSE_FILES down -v
 fi
 
 # Pull
 if [ "$PULL_IMAGES" = true ] || [ "$ENVIRONMENT" == "prod" ]; then
     print_info "Descargando imágenes ($API_VERSION / $FRONTEND_VERSION)..."
-    docker-compose $COMPOSE_FILES pull
+    # FIX: Usamos docker compose (v2)
+    docker compose $COMPOSE_FILES pull
 fi
 
 # Deploy
 print_info "Iniciando servicios..."
-docker-compose $COMPOSE_FILES up -d
+# FIX: Usamos docker compose (v2)
+docker compose $COMPOSE_FILES up -d --remove-orphans
 
 # Verificación
 print_info "Esperando arranque..."
 sleep 5
-SERVICES_STATUS=$(docker-compose $COMPOSE_FILES ps --services --filter "status=running")
+# FIX: Usamos docker compose (v2)
+SERVICES_STATUS=$(docker compose $COMPOSE_FILES ps --services --filter "status=running")
 
 if [ -z "$SERVICES_STATUS" ]; then
     print_error "Fallo al iniciar servicios. Revisa los logs."
-    docker-compose $COMPOSE_FILES ps
+    docker compose $COMPOSE_FILES ps
     exit 1
 fi
 
@@ -127,5 +129,6 @@ elif [ "$ENVIRONMENT" == "prod" ]; then
 fi
 
 if [ "$SHOW_LOGS" = true ]; then
-    docker-compose $COMPOSE_FILES logs -f
+    # FIX: Usamos docker compose (v2)
+    docker compose $COMPOSE_FILES logs -f
 fi
