@@ -1,53 +1,52 @@
 services:
   ahorroland-api:
-    image: sergioizqdev/ahorroland-backend:latest
+    image: sergioizqdev/ahorroland-backend:${API_VERSION:-latest}
     container_name: ahorroland-api
     ports:
       - "8080:80"
-      - "8443:443"
+      # - "8443:443" # Descomentar si usas HTTPS dentro del contenedor, usualmente el proxy inverso (Nginx/Traefik) maneja SSL
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      # ... (Resto de variables JWT y Email igual) ...
+      
+      # --- Base de Datos ---
+      # Nota: En Docker usamos el nombre del servicio 'db' y el puerto interno 3306
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=${DB_DATABASE};Uid=${DB_USER};Password=${DB_PASSWORD};GuidFormat=Binary16;
+
+      # --- JWT Security ---
       - JwtSettings__SecretKey=${JWT_SECRET_KEY}
       - JwtSettings__Issuer=${JWT_ISSUER:-AhorroLand}
       - JwtSettings__Audience=${JWT_AUDIENCE:-AhorroLand}
       - JwtSettings__ExpirationMinutes=${JWT_EXPIRATION:-720}
-      - EmailSettings__SmtpServer=${SMTP_SERVER}
-      - EmailSettings__SmtpPort=${SMTP_PORT}
-      - EmailSettings__SmtpUser=${SMTP_USER}
-      - EmailSettings__SmtpPass=${SMTP_PASS}
-      - EmailSettings__FromEmail=${FROM_EMAIL}
-      - EmailSettings__FromName=${FROM_NAME:-AhorroLand}
-      - ConnectionStrings__Redis=${REDIS_CONNECTION}
-      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER:-smtp-relay.brevo.com}
-      - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT:-587}
+
+      # --- Email Settings (Brevo) ---
+      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER}
+      - EmailSettings__SmtpPort=${EMAIL_SMTP_PORT}
       - EmailSettings__SmtpUser=${EMAIL_SMTP_USER}
       - EmailSettings__SmtpPass=${EMAIL_SMTP_PASS}
       - EmailSettings__FromEmail=${EMAIL_FROM_EMAIL}
       - EmailSettings__FromName=${EMAIL_FROM_NAME:-AhorroLand}
       - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL:-true}
-      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
-      - Serilog__WriteTo__0__Name=Console
-      - Serilog__WriteTo__1__Name=File
-      - Serilog__WriteTo__1__Args__path=/app/logs/ahorroland-.log
-      - Serilog__WriteTo__1__Args__rollingInterval=Day
-      - Serilog__WriteTo__1__Args__retainedFileCountLimit=7
-      - Serilog__WriteTo__1__Args__fileSizeLimitBytes=10485760
-      - Serilog__WriteTo__1__Args__rollOnFileSizeLimit=true
+
+      # --- Logging (.NET 10 + HtmlFileLog + Serilog) ---
+      - Serilog__MinimumLevel__Default=Information
+      # Configuración para tu sistema HtmlFileLog
+      - HtmlFileLog__LogDirectory=/app/logs
+      - HtmlFileLog__FileNamePrefix=ahorroland-prod
+      - HtmlFileLog__RetainedFileCountLimit=7
+      - HtmlFileLog__CleanOnStartup=false
+      
     volumes:
-      # Logs
+      # Logs: Mapeamos la carpeta del host a la carpeta configurada arriba
       - ./logs/backend:/app/logs
       
-      # 📷 NUEVO: Persistencia de Avatares
-      # Mapeamos la ruta real de tu VPS a la carpeta virtual de .NET
+      # Persistencia de Avatares / Archivos estáticos
       - /var/www/ahorroland/storage/avatars:/app/wwwroot/avatars
 
-      # Docker Sock para integración con herramientas
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - ahorroland-red # ✅ Conecta a la red del archivo base
+      - ahorroland-red
+    depends_on:
+      - db
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost/health"]
@@ -63,7 +62,7 @@ services:
     ports:
       - "3001:80"
     networks:
-      - ahorroland-red # ✅ Conecta a la red del archivo base
+      - ahorroland-red
 
   logrotate:
     image: blacklabelops/logrotate:latest
@@ -75,7 +74,6 @@ services:
       - "LOGROTATE_COPIES=7"
       - "LOGROTATE_SIZE=10M"
       - "LOGROTATE_COMPRESSION=compress"
-      - "LOGROTATE_OLDDIR=/logs/archive"
     volumes:
       - ./logs:/logs
     networks:
